@@ -1,5 +1,7 @@
 # Step 3: 3ウェイハンドシェイク
 
+> **本書の対応箇所**:『Rustで始めるTCP自作入門』3.5「スリーウェイハンドシェイク: アクティブオープン」(3.5.5 connect API、3.5.7 受信ハンドラ)
+
 ## ゴール
 
 - 3発目のACKを返して、接続を ESTABLISHED まで持っていく
@@ -131,7 +133,7 @@ lab/lab.sh exec host1 python3 steps/step03_connect.py 9000
 $ lab/lab.sh exec host2 ss -tan
 State   Recv-Q Send-Q Local Address:Port  Peer Address:Port
 LISTEN  0      1          0.0.0.0:9000        0.0.0.0:*
-ESTAB   0      0         10.0.0.2:9000       10.0.0.1:50301
+ESTAB   0      0         10.0.1.1:9000       10.0.0.1:50301
 ```
 
 **カーネルのTCPが、自作TCPとの接続を ESTAB と認めています。** これが、このステップの合格ラインです。

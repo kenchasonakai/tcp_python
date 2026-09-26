@@ -15,7 +15,7 @@ from tcp.rawsock import RawTCPSocket
 from tcp.segment import SYN, build, mss_option, parse, parse_options, verify_checksum
 
 LOCAL_IP = "10.0.0.1"
-REMOTE_IP = "10.0.0.2"
+REMOTE_IP = "10.0.1.1"
 
 
 def main():

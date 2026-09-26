@@ -6,9 +6,13 @@
 #   lab/lab.sh status
 #   lab/lab.sh exec host1 <cmd...>   host1 の中でコマンドを実行する
 #   lab/lab.sh shell host2           host2 の中でシェルを開く
+#   lab/lab.sh loss 30%              router でパケットの30%を落とす(本書 3.7.5 の tc netem)
+#   lab/lab.sh loss off              ロスをやめる
+#   lab/lab.sh drop-rst host2        host2 でも RST を捨てる(host2 でも自作TCPを動かすとき)
 #
-# host1 = 10.0.0.1 (自作TCPを動かす側)
-# host2 = 10.0.0.2 (カーネルのTCP。nc で相手役をする側)
+# host1  = 10.0.0.1   自作TCPを動かす側
+# router = 10.0.0.254 / 10.0.1.254
+# host2  = 10.0.1.1   カーネルのTCP。nc で相手役をする側
 set -eu
 DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/.." && pwd)"
@@ -62,5 +66,16 @@ case "${1:-}" in
     status) alive && echo "running (pid $(cat "$PIDFILE"))" || echo "not running" ;;
     exec)   shift; cmd_exec "$@" ;;
     shell)  shift; cmd_exec "$1" bash --norc -i ;;
-    *)      sed -n '2,12p' "$0"; exit 1 ;;
+    loss)
+        shift
+        [ -n "${1:-}" ] || { echo "usage: lab/lab.sh loss 30% | off" >&2; exit 1; }
+        if [ "$1" = off ]; then
+            cmd_exec router tc qdisc del dev router-veth2 root
+        else
+            cmd_exec router sh -c "tc qdisc del dev router-veth2 root 2>/dev/null; tc qdisc add dev router-veth2 root netem loss $1 && echo 'loss $1 (router-veth2)'"
+        fi ;;
+    drop-rst)
+        shift; [ -n "${1:-}" ] || { echo "usage: lab/lab.sh drop-rst host2" >&2; exit 1; }
+        cmd_exec "$1" iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP ;;
+    *)      sed -n '2,15p' "$0"; exit 1 ;;
 esac

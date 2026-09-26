@@ -1,5 +1,7 @@
 # Step 2: SYNを1発送る
 
+> **本書の対応箇所**:『Rustで始めるTCP自作入門』1.4.1「生ソケット」、3.4「初めてのTCPセグメント送信」
+
 ## ゴール
 
 - rawソケットで、自分で組み立てたTCPセグメントをネットワークに送り出す
@@ -91,7 +93,7 @@ lab/lab.sh exec host1 python3 steps/step02_syn.py 9000
 $ lab/lab.sh exec host2 ss -tan
 State     Recv-Q Send-Q Local Address:Port  Peer Address:Port
 LISTEN    0      1          0.0.0.0:9000        0.0.0.0:*
-SYN-RECV  0      0         10.0.0.2:9000       10.0.0.1:53540
+SYN-RECV  0      0         10.0.1.1:9000       10.0.0.1:53540
 ```
 
 `SYN-RECV` が、3発目を待っている「半開き(half-open)」の接続です。この状態の接続をわざと大量に作って、相手のメモリを食いつぶす攻撃が **SYN flood** です。対策として、Linuxは半開きが増えすぎるとSYN cookieという仕組みに切り替えて、状態を持たずにSYN/ACKを返します。

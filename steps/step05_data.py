@@ -35,7 +35,7 @@ def server(port: int, loss: float, loss_in: float):
 
 
 def client(port: int, message: str, loss: float, loss_in: float):
-    conn = Connection("10.0.0.1", random.randint(40000, 60000), "10.0.0.2", port, loss=loss, loss_in=loss_in)
+    conn = Connection("10.0.0.1", random.randint(40000, 60000), "10.0.1.1", port, loss=loss, loss_in=loss_in)
     conn.connect()
     conn.send(message.encode() + b"\n")
     print("    送信完了(すべて ACK された)。相手からの返事を待ちます(nc 側で何か打って Enter)")

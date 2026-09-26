@@ -18,7 +18,7 @@ from tcp.conn import Connection
 
 
 def client(port: int):
-    conn = Connection("10.0.0.1", random.randint(40000, 60000), "10.0.0.2", port)
+    conn = Connection("10.0.0.1", random.randint(40000, 60000), "10.0.1.1", port)
     conn.connect()
     conn.send(b"bye\n")
     print("\n自分から閉じます(能動クローズ)")

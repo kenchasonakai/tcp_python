@@ -25,7 +25,7 @@ def main():
         random.seed(args.seed)
 
     conn = Connection(
-        "10.0.0.1", random.randint(40000, 60000), "10.0.0.2", args.port,
+        "10.0.0.1", random.randint(40000, 60000), "10.0.1.1", args.port,
         loss=args.loss, loss_in=args.loss_in,
     )
     conn.connect()
