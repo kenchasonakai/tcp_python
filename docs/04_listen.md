@@ -124,7 +124,7 @@ port 9000 で待っています。 lab/lab.sh exec host2 nc 10.0.0.1 9000 で接
 `steps/step04_listen.py` の `Connection("10.0.0.1", port)` を `Connection("10.0.0.1", port, loss=1.0)` にすると、送信を全部落とします(この仕組みは Step 6 で使うものです)。カーネル側のncはSYNを何度再送するか、間隔はどうか、何秒であきらめるか。`ss -tan` でクライアント側の `SYN-SENT` も見てください。
 
 **2つ目の接続**
-ESTABLISHED のあと、もう1つ別の端末から `lab/lab.sh exec host2 nc 10.0.0.1 9000` してみてください。今の実装は1接続しか扱えないので、2つ目のSYNは `_handle_other` に入り、ACKフラグがないので無視されます。本物のTCPは、LISTENソケットと接続済みソケットを別々に持ち、SYNが来るたびに新しい接続を作ります(Step 8 の課題)。
+ESTABLISHED のあと、もう1つ別の端末から `lab/lab.sh exec host2 nc 10.0.0.1 9000` してみてください。今の実装は1接続しか扱えません。`accept()` で相手のIPとポートが確定した後は、別の送信元ポートから来た2つ目のSYNは `_recv()` の4つ組フィルタで捨てられ、`_handle_*` には届きません。host1 のカーネルが返そうとするRSTも iptables で落ちているので、2つ目のncは返事をもらえず SYN を再送し続けます(`lab/lab.sh exec host2 ss -tan` で `SYN-SENT` のまま止まっているのが見えます)。本物のTCPは、LISTENソケットと接続済みソケットを別々に持ち、SYNが来るたびに新しい接続を作ります(Step 8 の課題)。
 
 ## 理解チェック
 

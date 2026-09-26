@@ -49,7 +49,7 @@ Step 1 は sudo も仮想ネットワークも不要なので、環境構築の�
 │   ├── conn.py      Step 4〜7: TCP本体(コード中の [Step N] がどこで足したかを示す)
 │   └── sniff.py     自作ミニtcpdump
 ├── steps/           各ステップの実行スクリプト
-└── tests/           Step 1 のテスト
+└── tests/           テスト(segment: Step 1、conn: 擬似相手で状態遷移を検証。どちらも sudo 不要)
 ```
 
 ## 最短で動かす

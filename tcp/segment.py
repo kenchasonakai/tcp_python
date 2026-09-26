@@ -217,7 +217,12 @@ def parse_options(options: bytes) -> dict:
         if kind == 1:  # NOP(パディング)
             i += 1
             continue
+        if i + 1 >= len(options):
+            raise ValueError(f"オプションが途中で切れている: {options.hex()}")
         length = options[i + 1]
+        if length < 2 or i + length > len(options):
+            # length=0 を許すと i が進まず無限ループになる
+            raise ValueError(f"オプション kind={kind} の length={length} が不正: {options.hex()}")
         value = options[i + 2 : i + length]
         if kind == 2:
             result["mss"] = struct.unpack("!H", value)[0]

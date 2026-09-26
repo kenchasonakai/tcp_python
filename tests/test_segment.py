@@ -72,6 +72,18 @@ class TestBuildAndParse(unittest.TestCase):
         self.assertEqual(parse_options(parsed.options), {"mss": 1460})
         self.assertEqual(parsed.payload, b"")
 
+    def test_options_with_nop_and_eol(self):
+        # NOP, NOP, MSS(1460), EOL → 4 バイト境界にそろえた典型的な並び
+        self.assertEqual(parse_options(bytes([1, 1, 2, 4, 5, 180, 0, 0])), {"mss": 1460})
+
+    def test_options_reject_broken_length(self):
+        with self.assertRaises(ValueError):
+            parse_options(bytes([3, 0]))      # length=0 は無限ループのもと
+        with self.assertRaises(ValueError):
+            parse_options(bytes([2, 4]))      # 途中で切れている
+        with self.assertRaises(ValueError):
+            parse_options(bytes([2]))         # length 欄すらない
+
     def test_seg_len_counts_syn_and_fin(self):
         self.assertEqual(Segment(1, 2, 0, 0, SYN, 0).seg_len, 1)
         self.assertEqual(Segment(1, 2, 0, 0, ACK, 0, payload=b"abc").seg_len, 3)

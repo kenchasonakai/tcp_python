@@ -132,7 +132,7 @@ class Connection:
 
     def _run_until(self, cond: Callable[[], bool], timeout: Optional[float] = None) -> bool:
         """cond() が真になるまで _step() を回す。timeout 秒たったら False を返す。"""
-        deadline = time.time() + timeout if timeout else None
+        deadline = time.time() + timeout if timeout is not None else None
         while not cond():
             if deadline and time.time() > deadline:
                 return False
@@ -234,6 +234,11 @@ class Connection:
                 self._set_state("TIME_WAIT")            # [Step 7]
             elif self.state == "LAST_ACK" and all_acked:
                 self._set_state("CLOSED")               # [Step 7]
+        elif seg.ack == self.snd_una:
+            # ack は進んでいないが、ウィンドウ更新は受け取る(RFC 9293 3.10.7.4: SND.UNA =< SEG.ACK)。
+            # 相手がバッファを読み出したあとに送る「ack は同じ、window だけ増えた」セグメントがこれ。
+            # ここで更新しないと、相手のウィンドウが 0 になったあと send() が永久に止まる
+            self.snd_wnd = seg.window
         elif seg.ack > self.snd_nxt:
             self._log("    まだ送っていない分への ACK。無視")
             return
@@ -313,6 +318,7 @@ class Connection:
             self._set_state("LAST_ACK")         # 相手が先に閉じていた(受動クローズ)
         else:
             self._set_state("CLOSED")
+            self.raw.close()
             return
         self._run_until(lambda: self.state in ("TIME_WAIT", "CLOSED"))
         if self.state == "TIME_WAIT":

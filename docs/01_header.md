@@ -115,7 +115,7 @@ Pythonの対話環境で、自分でバイト列を作って眺めてくださ�
 >>> from tcp.segment import *
 >>> seg = build("10.0.0.1", "10.0.0.2", 40000, 80, seq=1000, ack=0, flags=SYN, window=65535)
 >>> seg.hex(" ")
-'9c 40 00 50 00 00 03 e8 00 00 00 00 50 02 ff ff 25 36 00 00'
+'9c 40 00 50 00 00 03 e8 00 00 00 00 50 02 ff ff fb 67 00 00'
 ```
 
 このhexを、上の図と照らし合わせて読んでみてください。
@@ -125,7 +125,7 @@ Pythonの対話環境で、自分でバイト列を作って眺めてくださ�
 - `00 00 00 00` = ack(ACKフラグがないので意味なし)
 - `50` = Data Offset 5、`02` = SYN
 - `ff ff` = window 65535
-- `25 36` = checksum、`00 00` = urgent
+- `fb 67` = checksum、`00 00` = urgent
 
 ```python
 >>> parse(seg)
@@ -141,6 +141,7 @@ False
 - `HEADER_FORMAT` の `!` を消してテストを走らせる。どのテストが、どう落ちるか
 - `checksum()` の桁あふれ処理(`while total >> 16`)を消す。テストは落ちるか。落ちないなら、落ちるテストを追加する
 - `build()` の `data_offset << 4` を `data_offset` にする。`parse` はどう誤読するか
+- `parse_options(bytes([3, 0]))` のように length=0 のオプションを食わせる。今の実装は `ValueError` を出すが、`if length < 2` のチェックを消すとどうなるか(ヒント: `i += length`)。相手が本物のTCPなら壊れたオプションは来ないが、自作のパーサは「来ない前提」で書いてよいのか
 
 ## 理解チェック
 
