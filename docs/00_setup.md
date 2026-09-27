@@ -39,7 +39,8 @@ lab/lab.sh start                          # 起動(一度起動すれば止め�
 lab/lab.sh exec host1 <コマンド>           # host1 の中でコマンドを実行
 lab/lab.sh exec host2 <コマンド>           # host2 の中で
 lab/lab.sh shell host2                    # host2 の中でシェルを開く(exit で戻る)
-lab/lab.sh loss 30%                       # router で30%のパケットを落とす(Step 6)
+lab/lab.sh loss 30%                       # router で両方向の30%のパケットを落とす(Step 6)
+lab/lab.sh loss 30% host2                 # host1→host2 方向だけ落とす(本書と同じ片方向)
 lab/lab.sh loss off                       # ロスをやめる
 lab/lab.sh status
 lab/lab.sh stop                           # 片付け

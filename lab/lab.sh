@@ -6,7 +6,8 @@
 #   lab/lab.sh status
 #   lab/lab.sh exec host1 <cmd...>   host1 の中でコマンドを実行する
 #   lab/lab.sh shell host2           host2 の中でシェルを開く
-#   lab/lab.sh loss 30%              router でパケットの30%を落とす(本書 3.7.5 の tc netem)
+#   lab/lab.sh loss 30%              router で両方向のパケットの30%を落とす(本書 3.7.5 の tc netem)
+#   lab/lab.sh loss 30% host2        host1→host2 方向だけ落とす(本書と同じ片方向。host1 で host1→host1 方向)
 #   lab/lab.sh loss off              ロスをやめる
 #   lab/lab.sh drop-rst host2        host2 でも RST を捨てる(host2 でも自作TCPを動かすとき)
 #
@@ -67,12 +68,23 @@ case "${1:-}" in
     exec)   shift; cmd_exec "$@" ;;
     shell)  shift; cmd_exec "$1" bash --norc -i ;;
     loss)
+        # netem はそのインターフェースから「出ていく」パケット(egress)にだけ効く。
+        #   router-veth2 の egress = host1 → host2 方向
+        #   router-veth1 の egress = host2 → host1 方向
+        # 本書 3.7.5 は router-veth2 だけ(片方向)。この教材は既定で両方に付けて、
+        # カーネル側(host2)の再送も観察できるようにしている。
         shift
-        [ -n "${1:-}" ] || { echo "usage: lab/lab.sh loss 30% | off" >&2; exit 1; }
+        [ -n "${1:-}" ] || { echo "usage: lab/lab.sh loss 30% [host1|host2] | off" >&2; exit 1; }
+        case "${2:-}" in
+            host1) devs="router-veth1" ;;   # host2 → host1 方向だけ
+            host2) devs="router-veth2" ;;   # host1 → host2 方向だけ
+            "")    devs="router-veth1 router-veth2" ;;
+            *)     echo "usage: lab/lab.sh loss 30% [host1|host2] | off" >&2; exit 1 ;;
+        esac
         if [ "$1" = off ]; then
-            cmd_exec router tc qdisc del dev router-veth2 root
+            cmd_exec router sh -c "for d in router-veth1 router-veth2; do tc qdisc del dev \$d root 2>/dev/null; done; echo 'loss off'"
         else
-            cmd_exec router sh -c "tc qdisc del dev router-veth2 root 2>/dev/null; tc qdisc add dev router-veth2 root netem loss $1 && echo 'loss $1 (router-veth2)'"
+            cmd_exec router sh -c "for d in router-veth1 router-veth2; do tc qdisc del dev \$d root 2>/dev/null; done; for d in $devs; do tc qdisc add dev \$d root netem loss $1 || exit 1; done; echo 'loss $1 ($devs)'"
         fi ;;
     drop-rst)
         shift; [ -n "${1:-}" ] || { echo "usage: lab/lab.sh drop-rst host2" >&2; exit 1; }
